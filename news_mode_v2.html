@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X News Feed</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#000; color: #e7e9ea; }
+        .wireframe-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .wireframe-header { text-align: center; margin-bottom: 30px; background: #16181c; padding: 20px; border-radius: 16px; border: 1px solid #2f3336; }
+        .wireframe-header h1 { color: #e7e9ea; margin-bottom: 10px; }
+        .wireframe-header p { color: #71767b; }
+        .mode-indicator { display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin-left: 10px; font-size: 14px; }
+        .mode-entertainment { background: #1d4ed8; color: white; }
+        .mode-news { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; }
+        .x-mockup { background: #000; border-radius: 16px; border: 1px solid #2f3336; overflow: hidden; margin-bottom: 30px; }
+        .x-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #2f3336; background: #000; }
+        .x-nav { display: flex; align-items: center; gap: 32px; }
+        .x-logo { font-size: 20px; font-weight: 800; color: #e7e9ea; }
+        .nav-item { color: #e7e9ea; font-size: 20px; font-weight: 400; cursor: pointer; padding: 12px 24px; border-radius: 24px; transition: background 0.2s; }
+        .nav-item:hover { background: #1c1f23; }
+        .nav-item.active { font-weight: 700; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .mode-toggle { display: flex; align-items: center; background: #16181c; border: 1px solid #2f3336; border-radius: 20px; padding: 2px; cursor: pointer; transition: all 0.2s ease; }
+        .mode-toggle:hover { border-color: #1d9bf0; }
+        .toggle-option { padding: 8px 16px; border-radius: 18px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; user-select: none; white-space: nowrap; }
+        .toggle-option.active { background: #1d9bf0; color: #000; }
+        .toggle-option:not(.active) { color: #71767b; }
+        .search-bar { background: #202327; border: 1px solid #2f3336; border-radius: 20px; padding: 12px 16px; color: #e7e9ea; width: 300px; }
+        .feed-container { /* max-height: 700px; overflow-y: auto; */ }
+        .tweet { border-bottom: 1px solid #2f3336; padding: 16px; transition: all 0.3s ease; cursor: pointer; position: relative; }
+        .tweet:hover { background: rgba(231, 233, 234, 0.03); }
+        .tweet.filtered { opacity: 0.3; filter: grayscale(100%); background: #0a0a0a; pointer-events: none; }
+        .tweet-header { display: flex; align-items: center; margin-bottom: 8px; }
+        .profile-pic { width: 40px; height: 40px; border-radius: 50%; background: #2f3336; margin-right: 12px; }
+        .user-info { display: flex; align-items: center; gap: 8px; }
+        .username { font-weight: 700; color: #e7e9ea; font-size: 15px; }
+        .handle { color: #71767b; font-size: 15px; }
+        .tweet-content { margin-bottom: 12px; padding-left: 52px; }
+        .tweet-text { font-size: 15px; line-height: 1.3; color: #e7e9ea; margin-bottom: 12px; }
+        .tweet-image { width: 100%; height: 140px; background: #2f3336; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #71767b; font-size: 14px; margin-bottom: 12px; }
+        .tweet-actions { display: flex; justify-content: space-between; max-width: 425px; padding-left: 52px; }
+        .action-btn { display: flex; align-items: center; gap: 8px; color: #71767b; font-size: 13px; cursor: pointer; padding: 8px; border-radius: 20px; transition: all 0.2s; }
+        .action-btn:hover { background: rgba(29, 155, 240, 0.1); color: #1d9bf0; }
+        .action-btn.active { background: #1a2b4c !important; color: #fff !important; }
+        .content-label { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; margin-left: 8px; }
+        .filter-indicator { position: absolute; top: 12px; right: 16px; background: rgba(239, 68, 68, 0.9); color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #e7e9ea; }
+        .controls { text-align: center; margin-bottom: 20px; }
+        button { background: #1d9bf0; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; margin: 0 10px; transition: background 0.2s ease; }
+        button:disabled { background: #2f3336; color: #71767b; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #1a8cd8; }
+        button.secondary { background: #16181c; color: #e7e9ea; border: 1px solid #2f3336; }
+        button.secondary:hover:not(:disabled) { background: #1c1f23; }
+        .paginator { display: flex; justify-content: center; align-items: center; margin: 24px 0 0 0; gap: 16px; }
+        .page-btn { width: 40px; height: 40px; border-radius: 50%; background: #1d9bf0; color: #fff; border: none; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .page-btn:disabled { background: #2f3336; color: #71767b; cursor: not-allowed; }
+        .page-indicator { color: #e7e9ea; font-size: 16px; font-weight: 500; margin: 0 8px; }
+        .comment-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .comment-modal { background: #16181c; border-radius: 16px; padding: 24px; min-width: 320px; box-shadow: 0 4px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 16px; }
+        .comment-modal textarea { width: 100%; min-height: 60px; border-radius: 8px; border: 1px solid #2f3336; background: #202327; color: #e7e9ea; padding: 8px; font-size: 15px; resize: vertical; }
+        .comment-modal .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
+        .comment-modal button { padding: 6px 18px; border-radius: 20px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; background: #1d9bf0; color: #fff; transition: background 0.2s; }
+        .comment-modal button.cancel { background: #2f3336; color: #e9e9ea; }
+    </style>
+</head>
+<body>
+<div class="wireframe-container">
+    <!-- Custom Welcome Modal -->
+    <div id="welcomeModalOverlay" class="comment-modal-overlay" style="display:flex;">
+        <div class="comment-modal" style="max-width:800px;text-align:center;">
+            <div style="font-size:2rem;font-weight:700;margin-bottom:10px;">Welcome!</div>
+            <div style="font-size:1.1rem;color:#e7e9ea;margin-bottom:18px;text-align:left;white-space:pre-line;">
+We are testing a new content delivery mode for social media platforms. In this mode, emotionally evocative content may appear slightly blurred, but it is not filtered out.
+
+Please imagine you're browsing your usual feed on X. If you come across content you might typically like, comment on, or share, feel free to click the corresponding icon to indicate your engagement.
+
+You can scroll at your own pace. After 2 minutes, you'll have the option to continue. After 5 minutes, the page will automatically move to the next stage.
+
+Click Start to continue.
+            </div>
+            <div class="modal-actions" style="justify-content:center;">
+                <button id="welcomeStartBtn" style="padding:8px 32px;font-size:1rem;">Start</button>
+            </div>
+        </div>
+    </div>
+    <!-- Step 1: News Only -->
+    <div id="step1">
+        <div class="wireframe-header">
+            <h1>X News Feed</h1>
+            <p></p>
+        </div>
+        <div class="controls">
+            <button id="nextBtn" disabled>Next Step</button>
+            <span id="timer1"></span>
+            <button id="exportBtn" style="display:none" onclick="exportLogsAsCSV()">Export Logs</button>
+        </div>
+        <div class="section-title"></div>
+        <div class="x-mockup">
+            <div class="x-header">
+                <div class="x-nav">
+                    <div class="x-logo">𝕏</div>
+                    <div class="nav-item active"></div>
+                    <div class="nav-item"></div>
+                    <div class="nav-item"></div>
+                </div>
+                <div class="header-right">
+                    
+                </div>
+            </div>
+            <div class="feed-container" id="newsFeed">
+                <div class="tweet" data-type="news" data-emotional="false">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Reuters</span>
+                            <span class="handle">@Reuters</span>
+                            <span class="timestamp">· 17m</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">Federal Reserve announces interest rate decision following two-day policy meeting. New rate set at 5.25% with gradual adjustments planned for next quarter.</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 12</div>
+                        <div class="action-btn" data-action="retweet">🔄 23</div>
+                        <div class="action-btn" data-action="like">❤️ 359</div>
+                        <div class="action-btn" data-action="stats">📊 7k</div>
+                    </div>
+                </div>
+                <div class="tweet filtered" data-type="entertainment">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Netflix</span>
+                            <span class="handle">@netflix</span>
+                            <span class="timestamp">· 28m</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">New season of Stranger Things dropping next month! 🎬✨ Here's your first look at what's coming...</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 5</div>
+                        <div class="action-btn" data-action="retweet">🔄 29</div>
+                        <div class="action-btn" data-action="like">❤️ 547</div>
+                        <div class="action-btn" data-action="stats">📊 5k</div>
+                    </div>
+                </div>
+                <div class="tweet" data-type="news" data-emotional="true">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Breaking Politics</span>
+                            <span class="handle">@breakingpol</span>
+                            <span class="timestamp">· 9m</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">🚨 BREAKING: EXPLOSIVE new revelations SHOCK the nation! Officials are OUTRAGED and FURIOUS about DEVASTATING developments that will DESTROY everything! This is UNBELIEVABLE! 😱🔥</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 11</div>
+                        <div class="action-btn" data-action="retweet">🔄 32</div>
+                        <div class="action-btn" data-action="like">❤️ 602</div>
+                        <div class="action-btn" data-action="stats">📊 8k</div>
+                    </div>
+                </div>
+                <div class="tweet" data-type="news" data-emotional="false">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">BBC News</span>
+                            <span class="handle">@BBCNews</span>
+                            <span class="timestamp">· 22m</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">Scientists discover new species of deep-sea jellyfish in the Pacific Ocean. The creature glows in the dark and has unique tentacle patterns.</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 3</div>
+                        <div class="action-btn" data-action="retweet">🔄 32</div>
+                        <div class="action-btn" data-action="like">❤️ 511</div>
+                        <div class="action-btn" data-action="stats">📊 6k</div>
+                    </div>
+                </div>
+                <div class="tweet filtered" data-type="entertainment">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Marvel Studios</span>
+                            <span class="handle">@MarvelStudios</span>
+                            <span class="timestamp">· 13m</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">The new Avengers trailer is here! Watch Earth's mightiest heroes assemble once again. #Avengers</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 9</div>
+                        <div class="action-btn" data-action="retweet">🔄 19</div>
+                        <div class="action-btn" data-action="like">❤️ 448</div>
+                        <div class="action-btn" data-action="stats">📊 7k</div>
+                    </div>
+                </div>
+                <div class="tweet" data-type="news" data-emotional="false">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">TechCrunch</span>
+                            <span class="handle">@TechCrunch</span>
+                            <span class="timestamp">· 31m</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">Apple unveils new MacBook Pro lineup with M3 chips, improved battery life, and brighter displays.</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 13</div>
+                        <div class="action-btn" data-action="retweet">🔄 20</div>
+                        <div class="action-btn" data-action="like">❤️ 407</div>
+                        <div class="action-btn" data-action="stats">📊 9k</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="paginator">
+            <button class="page-btn" id="prevPageBtn1" onclick="prevPage(1)">&lt;</button>
+            <span class="page-indicator" id="pageIndicator1">1 / 1</span>
+            <button class="page-btn" id="nextPageBtn1" onclick="nextPage(1)">&gt;</button>
+        </div>
+    </div>
+    <!-- Step 2: Toggle Mode -->
+    <div id="step2" style="display:none">
+        <div class="wireframe-header">
+            <h1>X News Feed</h1>
+            <p></p>
+            <div>
+                
+            </div>
+        </div>
+        <div class="controls">
+            <button id="finishBtn" disabled>Finish Experiment</button>
+            <span id="timer2"></span>
+            <button id="exportBtn2" style="display:none" onclick="exportLogsAsCSV()">Export Logs</button>
+        </div>
+        <div class="section-title"></div>
+        <div class="x-mockup">
+            <div class="x-header">
+                <div class="x-nav">
+                    <div class="x-logo">𝕏</div>
+                    <div class="nav-item active"></div>
+                    <div class="nav-item"></div>
+                    <div class="nav-item"></div>
+                </div>
+                <div class="header-right">
+                    <div class="mode-toggle" onclick="toggleMode()">
+                        <div class="toggle-option" id="entertainmentToggle">All Posts</div>
+                        <div class="toggle-option active" id="newsToggle">📰 News Only</div>
+                    </div>
+            
+                </div>
+            </div>
+            <div class="feed-container" id="toggleFeed">
+                <div class="tweet" data-type="news" data-emotional="false">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Reuters</span>
+                            <span class="handle">@Reuters</span>
+                            <span class="timestamp">· 17min</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">Federal Reserve announces interest rate decision following two-day policy meeting. New rate set at 5.25% with gradual adjustments planned for next quarter.</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 12</div>
+                        <div class="action-btn" data-action="retweet">🔄 23</div>
+                        <div class="action-btn" data-action="like">❤️ 359</div>
+                        <div class="action-btn" data-action="stats">📊 7k</div>
+                    </div>
+                </div>
+                <div class="tweet filtered" data-type="entertainment">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Netflix</span>
+                            <span class="handle">@netflix</span>
+                            <span class="timestamp">· 28min</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">New season of Stranger Things dropping next month! 🎬✨ Here's your first look at what's coming...</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 5</div>
+                        <div class="action-btn" data-action="retweet">🔄 29</div>
+                        <div class="action-btn" data-action="like">❤️ 547</div>
+                        <div class="action-btn" data-action="stats">📊 5k</div>
+                    </div>
+                </div>
+                <div class="tweet" data-type="news" data-emotional="true">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Breaking Politics</span>
+                            <span class="handle">@breakingpol</span>
+                            <span class="timestamp">· 9min</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">🚨 BREAKING: EXPLOSIVE new revelations SHOCK the nation! Officials are OUTRAGED and FURIOUS about DEVASTATING developments that will DESTROY everything! This is UNBELIEVABLE! 😱🔥</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 11</div>
+                        <div class="action-btn" data-action="retweet">🔄 32</div>
+                        <div class="action-btn" data-action="like">❤️ 602</div>
+                        <div class="action-btn" data-action="stats">📊 8k</div>
+                    </div>
+                </div>
+                <div class="tweet" data-type="news" data-emotional="false">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">BBC News</span>
+                            <span class="handle">@BBCNews</span>
+                            <span class="timestamp">· 22min</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">Scientists discover new species of deep-sea jellyfish in the Pacific Ocean. The creature glows in the dark and has unique tentacle patterns.</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 3</div>
+                        <div class="action-btn" data-action="retweet">🔄 32</div>
+                        <div class="action-btn" data-action="like">❤️ 511</div>
+                        <div class="action-btn" data-action="stats">📊 6k</div>
+                    </div>
+                </div>
+                <div class="tweet filtered" data-type="entertainment">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">Marvel Studios</span>
+                            <span class="handle">@MarvelStudios</span>
+                            <span class="timestamp">· 13min</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">The new Avengers trailer is here! Watch Earth's mightiest heroes assemble once again. #Avengers</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 9</div>
+                        <div class="action-btn" data-action="retweet">🔄 19</div>
+                        <div class="action-btn" data-action="like">❤️ 448</div>
+                        <div class="action-btn" data-action="stats">📊 7k</div>
+                    </div>
+                </div>
+                <div class="tweet" data-type="news" data-emotional="false">
+                    <div class="tweet-header">
+                        <div class="profile-pic"></div>
+                        <div class="user-info">
+                            <span class="username">TechCrunch</span>
+                            <span class="handle">@TechCrunch</span>
+                            <span class="timestamp">· 31min</span>
+                        </div>
+                    </div>
+                    <div class="tweet-content">
+                        <div class="tweet-text">Apple unveils new MacBook Pro lineup with M3 chips, improved battery life, and brighter displays.</div>
+                        <div class="tweet-image">Image preview currently not available</div>
+                    </div>
+                    <div class="tweet-actions">
+                        <div class="action-btn" data-action="comment">💬 13</div>
+                        <div class="action-btn" data-action="retweet">🔄 20</div>
+                        <div class="action-btn" data-action="like">❤️ 407</div>
+                        <div class="action-btn" data-action="stats">📊 9k</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="paginator">
+            <button class="page-btn" id="prevPageBtn2" onclick="prevPage(2)">&lt;</button>
+            <span class="page-indicator" id="pageIndicator2">1 / 1</span>
+            <button class="page-btn" id="nextPageBtn2" onclick="nextPage(2)">&gt;</button>
+        </div>
+    </div>
+</div>
+<script>
+    // ====== 通用变量和日志 ======
+    let step = 1;
+    let timer = 0;
+    let interval = null;
+    let currentMode = 'news'; // for step2
+    let currentPage1 = 1, currentPage2 = 1;
+    const TWEETS_PER_PAGE = 2;
+
+    // 日志
+    const userLogs = [];
+    const actionCounts = {
+        toggle: 0, like: 0, comment: 0, retweet: 0, stats: 0, nextPage: 0, prevPage: 0
+    };
+    const participantId = prompt("Enter participant ID:");
+    let startTime = new Date();
+    let endTime = null;
+
+    function logAction(action, detail = {}) {
+        const ts = new Date();
+        userLogs.push({ action, detail, timestamp: ts.toISOString() });
+        endTime = ts;
+        if (action === 'toggle_mode') actionCounts.toggle++;
+        if (action === 'click_like') actionCounts.like++;
+        if (action === 'click_comment' || action === 'send_comment') actionCounts.comment++;
+        if (action === 'click_retweet') actionCounts.retweet++;
+        if (action === 'click_stats') actionCounts.stats++;
+        if (action === 'next_page') actionCounts.nextPage++;
+        if (action === 'prev_page') actionCounts.prevPage++;
+        // console.log('User Action:', action, detail, ts.toLocaleTimeString());
+    }
+
+    function exportLogsAsCSV() {
+        const header = [
+            'participantId', 'startTime', 'endTime', 'actionCount',
+            'toggleCount', 'likeCount', 'commentCount', 'retweetCount', 'statsCount', 'nextPageCount', 'prevPageCount',
+            'actions'
+        ];
+        const row = [
+            participantId,
+            startTime.toISOString(),
+            endTime ? endTime.toISOString() : '',
+            userLogs.length,
+            actionCounts.toggle,
+            actionCounts.like,
+            actionCounts.comment,
+            actionCounts.retweet,
+            actionCounts.stats,
+            actionCounts.nextPage,
+            actionCounts.prevPage,
+            JSON.stringify(userLogs).replace(/"/g, '""')
+        ];
+        const csv = [header.join(','), row.join(',')].join('\n');
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `user_logs_${participantId}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ====== 阶段切换与计时 ======
+    function startStepTimer(stepNum, minSec, maxSec, nextCallback) {
+        timer = 0;
+        const btn = document.getElementById(stepNum === 1 ? 'nextBtn' : 'finishBtn');
+        const timerSpan = document.getElementById(stepNum === 1 ? 'timer1' : 'timer2');
+        btn.disabled = true;
+        timerSpan.textContent = `You can proceed in ${minSec} seconds`;
+        interval = setInterval(() => {
+            timer++;
+            if (timer < minSec) {
+                btn.disabled = true;
+                timerSpan.textContent = `You can proceed in ${minSec-timer} seconds`;
+            } else {
+                btn.disabled = false;
+                timerSpan.textContent = `You can proceed now. Auto-advance in ${maxSec-timer} seconds`;
+            }
+            if (timer >= maxSec) {
+                clearInterval(interval);
+                nextCallback();
+            }
+        }, 1000);
+    }
+
+    function goToStep2() {
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = '';
+        step = 2;
+        logAction('enter_step2');
+        showStep2InstructionModal();
+    }
+
+    function showStep2InstructionModal() {
+        if (document.getElementById('step2InstructionModalOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'comment-modal-overlay';
+        overlay.id = 'step2InstructionModalOverlay';
+        overlay.innerHTML = `
+            <div class="comment-modal" style="max-width:800px;text-align:center;">
+                <div style="font-size:2rem;font-weight:700;margin-bottom:10px;">Welcome to Stage 2!</div>
+                <div style="font-size:1.1rem;color:#e7e9ea;margin-bottom:18px;text-align:left;white-space:pre-line;">
+In this stage, you’ll see a toggle that lets you switch between “All Posts” and “News Only”.
+Feel free to explore both. Please imagine you're browsing your usual feed on X.
+
+If you come across content you might typically like, comment on, or share, click the corresponding icon to indicate your engagement.
+
+Scroll at your own pace.
+After 2 minutes, you'll be able to proceed.
+After 5 minutes, the page will automatically move to the next stage.
+                </div>
+                <div class="modal-actions" style="justify-content:center;">
+                    <button id="step2InstructionStartBtn" style="padding:8px 32px;font-size:1rem;">Start</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        document.body.style.overflow = 'hidden';
+        document.getElementById('step2InstructionStartBtn').onclick = function() {
+            overlay.remove();
+            document.body.style.overflow = '';
+            updatePagination(2);
+            startStepTimer(2, 2, 300, finishExperiment);
+        };
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.remove();
+                document.body.style.overflow = '';
+                updatePagination(2);
+                startStepTimer(2, 2, 300, finishExperiment);
+            }
+        });
+    }
+
+function finishExperiment() {
+    // Show modern exit modal
+    if (document.getElementById('exitModalOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'comment-modal-overlay';
+    overlay.id = 'exitModalOverlay';
+    overlay.innerHTML = `
+        <div class="comment-modal" style="max-width:800px;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:700;margin-bottom:10px;">You are now exiting the social media page</div>
+            <div style="font-size:1.1rem;color:#e7e9ea;margin-bottom:18px;">Are you sure that you want to go to the survey?</div>
+            <div class="modal-actions" style="justify-content:center;gap:24px;">
+                <button id="exitNoBtn" style="padding:8px 32px;font-size:1rem;background:#2f3336;color:#e7e9ea;">No</button>
+                <button id="exitYesBtn" style="padding:8px 32px;font-size:1rem;">Yes</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    document.getElementById('exitNoBtn').onclick = function() {
+        overlay.remove();
+        document.body.style.overflow = '';
+    };
+    document.getElementById('exitYesBtn').onclick = function() {
+        logAction('finish_experiment');
+        exportLogsAsCSV();
+        overlay.remove();
+        showThankYouModal();
+    };
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            overlay.remove();
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+function showThankYouModal() {
+    if (document.getElementById('thankYouModalOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'comment-modal-overlay';
+    overlay.id = 'thankYouModalOverlay';
+    overlay.innerHTML = `
+        <div class="comment-modal" style="max-width:800px;text-align:center;">
+            <div style="font-size:2rem;font-weight:700;margin-bottom:10px;">Thank you for participating! </div>
+            <div style="font-size:1.1rem;color:#e7e9ea;margin-bottom:18px;">Please press <b>F10</b> to proceed.</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    // Optionally, you can add a button to close this modal if needed
+}
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show welcome modal first
+        const overlay = document.getElementById('welcomeModalOverlay');
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('welcomeStartBtn').onclick = function() {
+            overlay.style.display = 'none';
+            document.body.style.overflow = '';
+            // Step1分页
+            updatePagination(1);
+            logAction('page_load_step1');
+            document.getElementById('nextBtn').onclick = function() {
+                clearInterval(interval);
+                goToStep2();
+            };
+            document.getElementById('finishBtn').onclick = function() {
+                clearInterval(interval);
+                finishExperiment();
+            };
+            startStepTimer(1, 2, 300, goToStep2);
+        };
+    });
+
+    // ====== 分页 ======
+    function updatePagination(stepNum) {
+        let tweets, page, pageIndicator, prevBtn, nextBtn;
+        if (stepNum === 1) {
+            tweets = Array.from(document.querySelectorAll('#newsFeed .tweet'));
+            page = currentPage1;
+            pageIndicator = document.getElementById('pageIndicator1');
+            prevBtn = document.getElementById('prevPageBtn1');
+            nextBtn = document.getElementById('nextPageBtn1');
+        } else {
+            tweets = Array.from(document.querySelectorAll('#toggleFeed .tweet'));
+            page = currentPage2;
+            pageIndicator = document.getElementById('pageIndicator2');
+            prevBtn = document.getElementById('prevPageBtn2');
+            nextBtn = document.getElementById('nextPageBtn2');
+        }
+        const totalPages = Math.max(1, Math.ceil(tweets.length / TWEETS_PER_PAGE));
+        if (stepNum === 1) currentPage1 = Math.min(currentPage1, totalPages);
+        else currentPage2 = Math.min(currentPage2, totalPages);
+        tweets.forEach(t => t.style.display = 'none');
+        const start = ((stepNum === 1 ? currentPage1 : currentPage2) - 1) * TWEETS_PER_PAGE;
+        const end = start + TWEETS_PER_PAGE;
+        tweets.slice(start, end).forEach(t => t.style.display = '');
+        pageIndicator.textContent = `${stepNum === 1 ? currentPage1 : currentPage2} / ${totalPages}`;
+        prevBtn.disabled = (stepNum === 1 ? currentPage1 : currentPage2) === 1;
+        nextBtn.disabled = (stepNum === 1 ? currentPage1 : currentPage2) === totalPages;
+    }
+    function nextPage(stepNum) {
+        let tweets, page, totalPages;
+        if (stepNum === 1) {
+            tweets = Array.from(document.querySelectorAll('#newsFeed .tweet'));
+            totalPages = Math.max(1, Math.ceil(tweets.length / TWEETS_PER_PAGE));
+            if (currentPage1 < totalPages) {
+                currentPage1++;
+                updatePagination(1);
+                logAction('next_page', {step: 1, page: currentPage1});
+            }
+        } else {
+            tweets = Array.from(document.querySelectorAll('#toggleFeed .tweet'));
+            totalPages = Math.max(1, Math.ceil(tweets.length / TWEETS_PER_PAGE));
+            if (currentPage2 < totalPages) {
+                currentPage2++;
+                updatePagination(2);
+                logAction('next_page', {step: 2, page: currentPage2});
+            }
+        }
+    }
+    function prevPage(stepNum) {
+        if (stepNum === 1) {
+            if (currentPage1 > 1) {
+                currentPage1--;
+                updatePagination(1);
+                logAction('prev_page', {step: 1, page: currentPage1});
+            }
+        } else {
+            if (currentPage2 > 1) {
+                currentPage2--;
+                updatePagination(2);
+                logAction('prev_page', {step: 2, page: currentPage2});
+            }
+        }
+    }
+
+    // ====== Step2 Toggle模式 ======
+    function toggleMode() {
+        const entertainmentToggle = document.getElementById('entertainmentToggle');
+        const newsToggle = document.getElementById('newsToggle');
+        const currentModeSpan = document.getElementById('currentMode');
+        const emotionalNews = document.querySelectorAll('#toggleFeed .tweet[data-type="news"][data-emotional="true"]');
+        const entertainmentTweets = document.querySelectorAll('#toggleFeed .tweet[data-type="entertainment"]');
+        if (currentMode === 'entertainment') {
+            currentMode = 'news';
+            entertainmentToggle.classList.remove('active');
+            newsToggle.classList.add('active');
+            if(currentModeSpan) {
+                currentModeSpan.textContent = 'News';
+                currentModeSpan.className = 'mode-indicator mode-news';
+            }
+            emotionalNews.forEach(tweet => tweet.classList.add('filtered'));
+            entertainmentTweets.forEach(tweet => tweet.classList.add('filtered'));
+        } else {
+            currentMode = 'entertainment';
+            newsToggle.classList.remove('active');
+            entertainmentToggle.classList.add('active');
+            if(currentModeSpan) {
+                currentModeSpan.textContent = 'Entertainment';
+                currentModeSpan.className = 'mode-indicator mode-entertainment';
+            }
+            // All posts都不加filtered
+            emotionalNews.forEach(tweet => tweet.classList.remove('filtered'));
+            entertainmentTweets.forEach(tweet => tweet.classList.remove('filtered'));
+        }
+        currentPage2 = 1;
+        updatePagination(2);
+        logAction('toggle_mode', {mode: currentMode});
+    }
+
+    // ====== 互动功能（两步都支持）======
+    function getFeedSelector() {
+        return step === 1 ? '#newsFeed' : '#toggleFeed';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('#newsFeed').addEventListener('click', function(e) {
+            handleFeedClick(e, 1);
+        });
+        document.querySelector('#toggleFeed').addEventListener('click', function(e) {
+            handleFeedClick(e, 2);
+        });
+    });
+    function handleFeedClick(e, stepNum) {
+        const btn = e.target.closest('.action-btn');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const tweetElem = btn.closest('.tweet');
+        const tweetIndex = Array.from(document.querySelectorAll(stepNum === 1 ? '#newsFeed .tweet' : '#toggleFeed .tweet')).indexOf(tweetElem);
+        if (action === 'retweet' || action === 'like') {
+            btn.classList.toggle('active');
+            logAction('click_' + action, {step: stepNum, tweetIndex});
+        } else if (action === 'comment') {
+            btn.classList.add('active');
+            logAction('click_comment', {step: stepNum, tweetIndex});
+            showCommentModal(btn, tweetIndex);
+        } else if (action === 'stats') {
+            btn.classList.add('active');
+            logAction('click_stats', {step: stepNum, tweetIndex});
+            showViewsModal(btn);
+        }
+    }
+    // 评论弹窗
+    function showCommentModal(btn, tweetIndex) {
+        if (document.getElementById('commentModalOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'comment-modal-overlay';
+        overlay.id = 'commentModalOverlay';
+        overlay.innerHTML = `
+            <div class="comment-modal">
+                <div style="font-weight:600;font-size:16px;">Add a comment</div>
+                <textarea id="commentInput" placeholder="Write your comment..."></textarea>
+                <div class="modal-actions">
+                    <button class="cancel" onclick="closeCommentModal()">Cancel</button>
+                    <button onclick="sendComment(${tweetIndex})">Send</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeCommentModal();
+            }
+        });
+        window._activeCommentBtn = btn;
+    }
+    function closeCommentModal() {
+        const overlay = document.getElementById('commentModalOverlay');
+        if (overlay) overlay.remove();
+        if (window._activeCommentBtn) {
+            window._activeCommentBtn.classList.remove('active');
+            window._activeCommentBtn = null;
+        }
+    }
+    function sendComment(tweetIndex) {
+        const textarea = document.getElementById('commentInput');
+        const comment = textarea.value.trim();
+        if (comment) {
+            logAction('send_comment', {step, tweetIndex, comment});
+            alert('Your comment has been sent:\n' + comment);
+            closeCommentModal();
+        } else {
+            textarea.focus();
+        }
+    }
+    // Views弹窗
+    function showViewsModal(btn) {
+        if (document.getElementById('viewsModalOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'comment-modal-overlay';
+        overlay.id = 'viewsModalOverlay';
+        overlay.innerHTML = `
+            <div class="comment-modal">
+                <div style="font-weight:700;font-size:22px;text-align:center;">Views</div>
+                <div style="margin-top:12px;text-align:center;font-size:15px;color:#e7e9ea;">Times this post was seen.</div>
+                <div class="modal-actions" style="justify-content:center;margin-top:20px;">
+                    <button onclick="closeViewsModal()">Close</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeViewsModal();
+            }
+        });
+        window._activeViewsBtn = btn;
+    }
+    function closeViewsModal() {
+        const overlay = document.getElementById('viewsModalOverlay');
+        if (overlay) overlay.remove();
+        if (window._activeViewsBtn) {
+            window._activeViewsBtn.classList.remove('active');
+            window._activeViewsBtn = null;
+        }
+    }
+    // Step2初始状态
+    document.addEventListener('DOMContentLoaded', function() {
+        // Step2初始只显示news（All Posts模式下不加filtered，News Only模式下加filtered）
+        const emotionalNews = document.querySelectorAll('#toggleFeed .tweet[data-type="news"][data-emotional="true"]');
+        const entertainmentTweets = document.querySelectorAll('#toggleFeed .tweet[data-type="entertainment"]');
+        emotionalNews.forEach(tweet => tweet.classList.add('filtered'));
+        entertainmentTweets.forEach(tweet => tweet.classList.add('filtered'));
+        updatePagination(2);
+    });
+</script>
+</body>
+</html>
